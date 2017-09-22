@@ -24,7 +24,7 @@ define([
         self.ws = io(AppConstants.Engine.CHAT_HOST);
 
         /** Chat channel currently in use **/
-        self.channelName = Clib.localOrDef('channelName', 'english');
+        self.channelName = 'english'; //Clib.localOrDef('channelName', 'english');
 
         /**
          * States of the chat:
@@ -117,6 +117,7 @@ define([
      */
     Chat.prototype.say = function(msg, isBot) {
         console.assert(msg.length >= 1 && msg.length < 500);
+        console.log("Message object sent:", msg);
         this.ws.emit('say', msg, isBot);
     };
 

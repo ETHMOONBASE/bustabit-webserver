@@ -21,14 +21,14 @@ function CustomChart(startingFrom, cum, chartData) {
             var entry = x.dataContext;
             var profit = (entry.cash_out ? entry.cash_out : 0) + (entry.bonus ? entry.bonus : 0) - entry.bet;
 
-            var r = "<table>" +
+            var r = "<table class='player_game_history_table'>" +
                 "<tr><th>Game Id:</th><td>" + entry.game_id + "<br><small>(" + entry.timeago + ")</small>" +
                 "</td></tr>" +
-                '<tr><th>Bet:</th><td>' + (entry.bet/100).toFixed() + ' bits</td></tr>' +
+                '<tr><th>Bet:</th><td>' + (entry.bet/100).toFixed() + ' rips</td></tr>' +
                 "<tr><th>Crash At:</th><td>" + (typeof entry.game_crash !== 'undefined' ? (entry.game_crash/100).toFixed(2) + 'x' : '?') + "</td></tr>" +
                 "<tr><th>Cashed Out:</th><td>" + (entry.cash_out ? (entry.cash_out / entry.bet).toFixed(2) + 'x' : '-') + "</td></tr>" +
-                '<tr><th>Bonus: </th><td>' + (entry.bonus ? (entry.bonus/100).toFixed(2) : 0) + ' bits</td></tr>' +
-                "<tr><th>Profit:</th><td><b>" + (profit/100).toFixed(2) + " bits</b></td></tr>" +
+                '<tr><th>Bonus: </th><td>' + (entry.bonus ? (entry.bonus/100).toFixed(2) : 0) + ' rips</td></tr>' +
+                "<tr><th>Profit:</th><td><b>" + (profit/100).toFixed(2) + " rips</b></td></tr>" +
                 '</table>';
             return r;
 

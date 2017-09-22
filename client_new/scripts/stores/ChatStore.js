@@ -16,7 +16,7 @@ define([
     var _height = 253;
 
     /** How to display the bots on the chat **/
-    var _botsDisplayMode = Clib.localOrDef('botsDisplayMode', 'normal'); //normal || greyed || none
+    var _botsDisplayMode = Clib.localOrDef('botsDisplayMode', 'greyed'); //normal || greyed || none
 
     var ChatStore = _.extend({}, Events, {
 

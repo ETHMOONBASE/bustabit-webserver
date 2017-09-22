@@ -127,7 +127,9 @@ define([
             var betContainer = D.div({ className: 'bet-container' , key: 'ci-1' },
 
                 D.div({ className: 'bet-input-group' + (this.state.betInvalid? ' error' : '') },
-                    D.span({ className: '' }, 'Bet'),
+                    D.span({ className: '' }, 'Bet',
+                        D.i({ className: 'maxBetNotice'}, '(Max bet: '+(Engine.maxBet / 1e8).toFixed(4)+' XRP)')
+                    ),
                     D.input({
                         type: 'text',
                         name: 'bet-size',
@@ -137,7 +139,7 @@ define([
                             self._setBetSize(e.target.value);
                         }
                     }),
-                    D.span({ className: '' }, 'bits')
+                    D.span({ className: '' }, 'rips')
                 )
             );
             var autoCashContainer = D.div({ className: 'autocash-container', key: 'ci-2' },

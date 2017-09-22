@@ -73,7 +73,7 @@ define([
             if(this.state.username) {
                 userLogin = D.div({ className: 'user-login' },
                     D.div({ className: 'balance-bits' },
-                        D.span(null, 'Bits: '),
+                        D.span(null, 'Rips: '),
                         D.span({ className: 'balance' }, this.state.balanceBitsFormatted )
                     ),
                     D.div({ className: 'username' },
@@ -94,7 +94,7 @@ define([
             return D.div({ id: 'top-bar' },
                 D.div({ className: 'title' },
                     D.a({ href: '/' },
-                        D.h1(null, this.props.isMobileOrSmall? 'BaB' : 'bustabit')
+                        D.h1(null, this.props.isMobileOrSmall? 'winxrp' : 'winxrp')
                     )
                 ),
                 userLogin,
@@ -105,7 +105,22 @@ define([
                 ),
                 D.div({ className: 'full-screen noselect', onClick: this._toggleFullScreen },
                 	 this.state.fullScreen? D.i({ className: 'fa fa-compress' }) : D.i({ className: 'fa fa-expand' })
-            	)
+            	),
+                D.div({ className: 'toggle-view noselect hide-for-small' },
+                    D.a({ href: '/faq#fair', target: '_blank'},
+                        "Provably Fair"
+                    )
+                ),
+                D.div({ className: 'toggle-view noselect hide-for-small' },
+                    D.a({ href: '/faq', target: '_blank'},
+                        "How to play"
+                    )
+                ),
+                D.div({ className: 'toggle-view noselect hide-for-small' },
+                    D.a({ href: '/investment', target: '_blank'},
+                        "Invest"
+                    )
+                )
             )
         }
     });

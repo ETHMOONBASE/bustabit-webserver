@@ -37,29 +37,78 @@ exports.show = function(req, res, next) {
   * Public API
   * Shows the leader board
   **/
- exports.getLeaderBoard = function(req, res, next) {
-     var user = req.user;
-     var by = req.query.by;
+exports.getLeaderBoard = function(req, res, next) {
+    var user = req.user;
+    var by = req.query.by;
+    var last24 = req.query.last24 || null;
 
-     var byDb, order;
-     switch(by) {
-         case 'net_desc':
-             byDb = 'net_profit';
-             order = 'DESC';
-             break;
-         case 'net_asc':
-             byDb = 'net_profit';
-             order = 'ASC';
-             break;
-         default :
-             byDb = 'gross_profit';
-             order = 'DESC';
-     }
+    var byDb, order;
+    switch(by) {
+        case 'net_desc':
+            byDb = 'net_profit';
+            order = 'DESC';
+            break;
+        case 'net_asc':
+            byDb = 'net_profit';
+            order = 'ASC';
+            break;
+        default :
+            byDb = 'gross_profit';
+            order = 'DESC';
+    }
 
-     database.getLeaderBoard(byDb, order ,function(err, leaders) {
-         if (err)
-             return next(new Error('Unable to get leader board: \n' + err));
+    if(last24){
+        database.getLeaderBoard24(byDb, order ,function(err, leaders) {
+            if (err)
+                return next(new Error('Unable to get leader board: \n' + err));
 
-        res.render('leaderboard', { user: user, leaders: leaders, sortBy: byDb, order: order });
-     });
+            res.render('leaderboard', { user: user, leaders: leaders, sortBy: byDb, order: order, last24: true });
+        });
+    }else{
+        database.getLeaderBoard(byDb, order ,function(err, leaders) {
+            if (err)
+                return next(new Error('Unable to get leader board: \n' + err));
+
+            res.render('leaderboard', { user: user, leaders: leaders, sortBy: byDb, order: order, last24: false });
+        });
+    }
+};
+
+ /**
+  * GET
+  * Restricted API
+  * Show the current contest page
+  **/
+exports.getContest = function(req, res, next) {
+    var user = req.user;
+
+    var byDb = "net_profit";
+    var order = "DESC";
+
+    database.getContestLeaderboard(byDb, order, function(err, leaders) {
+        res.render('contest', { user: user, leaders: leaders.slice(0, 20), sortBy: byDb, order: order, last24: true });
+    });
+};
+
+/**
+  * GET
+  * Public API
+  * Show a single game info
+  **/
+ exports.getGameInfoJson = function(req, res, next) {
+    var gameId = parseInt(req.params.id);
+
+    if (!gameId || typeof gameId !== 'number')
+        return res.sendStatus(400);
+
+    database.getGameInfo(gameId, function(err, game) {
+        if (err) {
+            if (err === 'GAME_DOES_NOT_EXISTS')
+                return res.json(err);
+
+            console.error('[INTERNAL_ERROR] Unable to get game info. gameId: ', gameId);
+            return res.sendStatus(500);
+        }
+        res.json(game);
+    });
  };

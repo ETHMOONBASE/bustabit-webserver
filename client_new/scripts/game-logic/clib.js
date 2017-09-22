@@ -50,10 +50,10 @@ define([
             var bet = parseInt(betString.replace(/k/g, '000'));
 
             if (bet < 1)
-                return new Error('The bet should be at least 1 bit');
+                return new Error('The bet should be at least 1 rips');
 
             if (bet * 100 > AppConstants.Engine.MAX_BET)
-                return new Error('The bet must be less no more than ' + formatSatoshis(AppConstants.Engine.MAX_BET) + ' bits');
+                return new Error('The bet must be less no more than ' + formatSatoshis(AppConstants.Engine.MAX_BET) + ' rips');
 
             if (_.isNaN(bet) || Math.floor(bet) !== bet)
                 return new Error('The bet should be an integer greater than or equal to one');

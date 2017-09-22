@@ -1,6 +1,6 @@
 var assert = require('better-assert');
 var async = require('async');
-var bitcoinjs = require('bitcoinjs-lib');
+var RippleAPI = require('ripple-lib').RippleAPI;
 var request = require('request');
 var timeago = require('timeago');
 var lib = require('./lib');
@@ -17,6 +17,10 @@ var sessionOptions = {
     httpOnly: true,
     secure : config.PRODUCTION
 };
+
+var api = new RippleAPI({
+  server: require(process.env.DEPOSITOR_CONFIGS)["XRP_API_URL"]
+});
 
 /**
  * POST
@@ -324,9 +328,13 @@ exports.account = function(req, res, next) {
         user.withdrawals = !withdrawals.sum ? 0 : withdrawals.sum;
         user.giveaways = !giveaways.sum ? 0 : giveaways.sum;
         user.net_profit = net.profit;
-        user.deposit_address = lib.deriveAddress(user.id);
 
-        res.render('account', { user: user });
+        lib.deriveAddress(user.id, (err) => {
+          if(err) console.log(err);
+          user.deposit_address = require(process.env.DEPOSITOR_TAGS)["tags"][user.id];
+
+          res.render('account', { user: user });
+        });
     });
 };
 
@@ -620,10 +628,198 @@ exports.deposit = function(req, res, next) {
             return next(new Error('Unable to get deposits: \n' + err));
         }
         user.deposits = deposits;
-        user.deposit_address = lib.deriveAddress(user.id);
-        res.render('deposit', { user:  user });
+
+        lib.deriveAddress(user.id, (err, tag) => {
+          if(err) console.log(err);
+          user.deposit_address = tag;
+
+          res.render('deposit', { user:  user });
+        });
     });
 };
+
+/**
+ * GET
+ * Restricted API
+ * Shows the investment history & info
+ **/
+exports.investment = function(req, res, next) {
+    var user = req.user;
+    assert(user);
+
+    var success = (req.query.m === 'success') ? 'The request will be processed soon.' : undefined;
+
+    database.getInvestments(user.id, function(err, investments) {
+        if (err) {
+          return next(new Error('Unable to get user investments: \n' + err));
+        }
+
+        database.getInvestment(user.id, function(err, investment) {
+          if (err) {
+            return next(new Error('Unable to get user investment: \n' + err));
+          }
+
+          var sumInvested = 0;
+          
+          for(var i in investments){
+            if(investments[i] && investments[i].done){
+              sumInvested += parseInt(investments[i].amount);
+              if(sumInvested < 0) sumInvested = 0;
+            }
+          }
+
+          user.investments = investments;
+          user.investment = investment;
+          user.sumInvested = sumInvested;
+
+          database.getBankroll((err, bankrollData) => {
+            user.bankrollData = bankrollData;
+            res.render('investment', { user:  user, success: success });
+          });
+        });
+    });
+};
+
+ /**
+  * GET
+  * Restricted API
+  * Shows the investment request page
+  **/
+
+exports.investmentRequest = function(req, res) {
+    assert(req.user);
+    res.render('investment-request', { user: req.user });
+};
+
+ /**
+  * POST
+  * Restricted API
+  * Process the invest/divest
+  **/
+
+exports.handleInvestmentRequest =  function (req,res,next){
+    var user = req.user;
+    assert(user);
+    var amount = parseInt(lib.removeNullsAndTrim(req.body.amount));
+
+    if(amount === 0) return res.render('investment-request', {user: user, warning: 'Error: Cannot send a request of 0 rips. Must be either negative or positive number.'});
+
+    require(process.env.INVESTMENT_FUNCTIONS)["investmentReq"].makeInvestment(user.id, Math.floor(amount*100), function(err){
+        if(err){
+            return res.render('investment-request', {user: user, warning: 'Error: ' + err});
+        }
+
+        return res.redirect('/investment?m=success');
+    });
+}
+
+ /**
+  * GET
+  * Restricted API
+  * Shows the transfer history
+  **/
+exports.transfer = function(req, res, next) {
+  var user = req.user;
+  assert(user);
+
+  var success = (req.query.m === 'success') ? 'Transfer has been made' : undefined;
+
+
+  database.getTransfers(user.id, function(err, transfers) {
+      if (err)
+          return next(new Error('Unable to get transfers: ' + err));
+
+      res.render('transfer', { user: user, transfers: transfers, success: success });
+  });
+};
+
+exports.transferJson = function(req, res, next) {
+    var user = req.user;
+    assert(user);
+
+
+    database.getTransfers(user.id, function(err, transfers) {
+        if (err)
+            return next(new Error('Unable to get transfers: ' + err));
+
+        res.json(transfers);
+    });
+};
+
+  /**
+   * GET
+   * Restricted API
+   * Shows the transfer request page
+   **/
+
+exports.transferRequest = function(req, res) {
+    assert(req.user);
+    res.render('transfer-request', { user: req.user, id: uuid.v4() });
+};
+
+ /**
+  * POST
+  * Restricted API
+  * Process a transfer (tip)
+  **/
+
+ exports.handleTransferRequest = function (req,res,next){
+     var user = req.user;
+     assert(user);
+     var uid = req.body['transfer-id'];
+     var amount = lib.removeNullsAndTrim(req.body.amount);
+     var toUserName = lib.removeNullsAndTrim(req.body['to-user']);
+     var password = lib.removeNullsAndTrim(req.body.password);
+     var otp = lib.removeNullsAndTrim(req.body.otp);
+     var r =  /^[1-9]\d*(\.\d{0,2})?$/;
+     if (!r.test(amount))
+         return res.render('transfer-request', { user: user, id: uuid.v4(),  warning: 'Not a valid amount' });
+    amount = Math.round(parseFloat(amount) * 100);
+
+     if (amount < 10000)
+        return res.render('transfer-request', { user: user, id: uuid.v4(),  warning: 'Must transfer at least 100 rips' });
+
+    if (!password)
+        return res.render('transfer-request', { user: user,  id: uuid.v4(), warning: 'Must enter a password'});
+
+    if (user.username.toLowerCase() === toUserName.toLowerCase()) {
+        return res.render('transfer-request', { user: user,  id: uuid.v4(), warning: 'Can\'t send money to yourself'});
+    }
+
+    database.validateUser(user.username, password, otp, function(err) {
+
+        if (err) {
+            if (err === 'WRONG_PASSWORD')
+                return res.render('transfer-request', {
+                    user: user,
+                    id: uuid.v4(),
+                    warning: 'wrong password, try it again...'
+                });
+            if (err === 'INVALID_OTP')
+                return res.render('transfer-request', {user: user, id: uuid.v4(), warning: 'invalid one-time token'});
+            //Should be an user
+            return next(new Error('Unable to validate user handling transfer: ' + err));
+        }
+        // Check destination user
+
+        database.makeTransfer(uid, user.id, toUserName, amount, function (err) {
+            if (err) {
+                if (err === 'NOT_ENOUGH_BALANCE')
+                    return res.render('transfer-request', {user: user, id: uuid.v4(), warning: 'Not enough balance for transfer'});
+                if (err === 'USER_NOT_EXIST')
+                    return res.render('transfer-request', {user: user, id: uuid.v4(), warning: 'Could not find user'});
+                if (err === 'TRANSFER_ALREADY_MADE')
+                    return res.render('transfer-request', {user: user, id: uuid.v4(), warning: 'You already submitted this'});
+
+                console.error('[INTERNAL_ERROR] could not make transfer: ', err);
+                return res.render('transfer-request', {user: user, id: uuid.v4(), warning: 'Could not make transfer'});
+            }
+
+            return res.redirect('/transfer?m=success');
+        });
+    });
+
+ };
 
 /**
  * GET
@@ -661,62 +857,87 @@ exports.handleWithdrawRequest = function(req, res, next) {
     var withdrawalId = req.body.withdrawal_id;
     var password = lib.removeNullsAndTrim(req.body.password);
     var otp = lib.removeNullsAndTrim(req.body.otp);
+    var withdrawalTag = req.body.withdrawal_tag;
+    var withdrawalFees = req.body.fees;
 
     var r =  /^[1-9]\d*(\.\d{0,2})?$/;
     if (!r.test(amount))
-        return res.render('withdraw-request', { user: user, id: uuid.v4(),  warning: 'Not a valid amount' });
+        return api.getFee().then(fee => {
+            fee = 0.02;//parseFloat(fee);
+            fee *= 1e6;
+            res.render('withdraw-request', { user: user, id: uuid.v4(), xrpfees: Math.floor(fee/100), warning: 'Not a valid amount' });
+        });
 
     amount = Math.round(parseFloat(amount) * 100);
     assert(Number.isFinite(amount));
 
-    var minWithdraw = config.MINING_FEE + 10000;
+    api.connect().then(() => {
+        if (isNaN(withdrawalFees) || withdrawalFees=="")
+            return api.getFee().then(fee => {
+                fee = 0.02;//parseFloat(fee);
+                fee *= 1e6;
+                res.render('withdraw-request', { user: req.user, id: uuid.v4(), xrpfees: fee, warning: 'Invalid fee amount' });
+            });
 
-    if (amount < minWithdraw)
-        return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'You must withdraw ' + minWithdraw + ' or more'  });
+        var fee = 0.02;//parseFloat(withdrawalFees);
+        fee *= 100; // fees in satoshi
+        fee = Math.floor(fee);
+        
+        var minWithdraw = fee + 100000;
 
-    if (typeof destination !== 'string')
-        return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'Destination address not provided' });
+        if (amount < minWithdraw)
+            return res.render('withdraw-request', { user: user,  id: uuid.v4(), xrpfees: Math.floor(fee/100), warning: 'You must withdraw ' + minWithdraw + ' or more'  });
 
-    try {
-        var version = bitcoinjs.Address.fromBase58Check(destination).version;
-        if (version !== bitcoinjs.networks.bitcoin.pubKeyHash && version !== bitcoinjs.networks.bitcoin.scriptHash)
-            return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'Destination address is not a bitcoin one' });
-    } catch(ex) {
-        return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'Not a valid destination address' });
-    }
+        if (typeof destination !== 'string')
+            return res.render('withdraw-request', { user: user,  id: uuid.v4(), xrpfees: Math.floor(fee/100), warning: 'Destination address not provided' });
 
-    if (!password)
-        return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'Must enter a password' });
+        if (!password)
+            return res.render('withdraw-request', { user: user,  id: uuid.v4(), xrpfees: Math.floor(fee/100), warning: 'Must enter a password' });
 
-    if(!lib.isUUIDv4(withdrawalId))
-      return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'Could not find a one-time token' });
+        if(!lib.isUUIDv4(withdrawalId))
+          return res.render('withdraw-request', { user: user,  id: uuid.v4(), xrpfees: Math.floor(fee/100), warning: 'Could not find a one-time token' });
 
-    database.validateUser(user.username, password, otp, function(err) {
+        if(!/^r[1-9A-HJ-NP-Za-km-z]{25,34}$/.test(destination))
+            return res.render('withdraw-request', { user: user,  id: uuid.v4(), xrpfees: Math.floor(fee/100), warning: 'Destination address is not a ripple address' });
 
-        if (err) {
-            if (err === 'WRONG_PASSWORD')
-                return res.render('withdraw-request', { user: user, id: uuid.v4(), warning: 'wrong password, try it again...' });
-            if (err === 'INVALID_OTP')
-                return res.render('withdraw-request', { user: user, id: uuid.v4(), warning: 'invalid one-time token' });
-            //Should be an user
-            return next(new Error('Unable to validate user handling withdrawal: \n' + err));
-        }
+        api.getAccountInfo(destination).then((info)=>{
+            if(info.result == "error"){
+              return res.render('withdraw-request', { user: user,  id: uuid.v4(), xrpfees: Math.floor(fee/100), warning: 'Cannot retrieve destination address info' });
+            }else{
+              database.validateUser(user.username, password, otp, function(err) {
+                if (err) {
+                  if (err === 'WRONG_PASSWORD')
+                    return res.render('withdraw-request', { user: user, id: uuid.v4(), xrpfees: Math.floor(fee/100), warning: 'wrong password, try it again...' });
+                  if (err === 'INVALID_OTP')
+                    return res.render('withdraw-request', { user: user, id: uuid.v4(), xrpfees: Math.floor(fee/100), warning: 'invalid one-time token' });
+                  //Should be an user
+                  return next(new Error('Unable to validate user handling withdrawal: \n' + err));
+                }
 
-        withdraw(req.user.id, amount, destination, withdrawalId, function(err) {
-            if (err) {
-                if (err === 'NOT_ENOUGH_MONEY')
-                    return res.render('withdraw-request', { user: user, id: uuid.v4(), warning: 'Not enough money to process withdraw.' });
-                else if (err === 'PENDING')
-                    return res.render('withdraw-request', { user: user,  id: uuid.v4(), success: 'Withdrawal successful, however hot wallet was empty. Withdrawal will be reviewed and sent ASAP' });
-                else if(err === 'SAME_WITHDRAWAL_ID')
-                    return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'Please reload your page, it looks like you tried to make the same transaction twice.' });
-                else if(err === 'FUNDING_QUEUED')
-                    return res.render('withdraw-request', { user: user,  id: uuid.v4(), success: 'Your transaction is being processed come back later to see the status.' });
-                else
-                    return next(new Error('Unable to withdraw: ' + err));
+                withdraw(req.user.id, amount, destination, withdrawalId, withdrawalTag, function(err) {
+                  if (err) {
+                    if (err === 'NOT_ENOUGH_MONEY')
+                      return res.render('withdraw-request', { user: user, id: uuid.v4(), xrpfees: Math.floor(fee/100), warning: 'Not enough money to process withdraw.' });
+                    else if (err === 'PENDING')
+                      return res.render('withdraw-request', { user: user,  id: uuid.v4(), xrpfees: Math.floor(fee/100), success: 'Withdrawal successful, however hot wallet was empty. Withdrawal will be reviewed and sent ASAP' });
+                    else if(err === 'SAME_WITHDRAWAL_ID')
+                      return res.render('withdraw-request', { user: user,  id: uuid.v4(), xrpfees: Math.floor(fee/100), warning: 'Please reload your page, it looks like you tried to make the same transaction twice.' });
+                    else if(err === 'FUNDING_QUEUED')
+                      return res.render('withdraw-request', { user: user,  id: uuid.v4(), xrpfees: Math.floor(fee/100), success: 'Your transaction is being processed come back later to see the status.' });
+                    else
+                      return res.render('withdraw-request', { user: user,  id: uuid.v4(), xrpfees: Math.floor(fee/100), warning: err });
+                  }
+                  return res.render('withdraw-request', { user: user, id: uuid.v4(), xrpfees: Math.floor(fee/100), success: 'OK' });
+                });
+              });
             }
-            return res.render('withdraw-request', { user: user, id: uuid.v4(), success: 'OK' });
+        }).catch((e) => {
+            console.error(e);
+            return res.render('withdraw-request', { user: user,  id: uuid.v4(), xrpfees: Math.floor(fee/100), warning: 'Not a valid destination address' });
         });
+    }).catch((e) => { 
+        console.error(e);
+        return res.render('withdraw-request', { user: user,  id: uuid.v4(), xrpfees: Math.floor(fee/100), warning: 'An unknown error happened. Withdraw canceled.' });
     });
 };
 
@@ -727,7 +948,14 @@ exports.handleWithdrawRequest = function(req, res, next) {
  **/
 exports.withdrawRequest = function(req, res) {
     assert(req.user);
-    res.render('withdraw-request', { user: req.user, id: uuid.v4() });
+    api.connect().then(() => {
+        api.getFee().then(fee => {
+            fee = 0.02;//parseFloat(fee);
+            fee *= 1e6;
+            fee = Math.floor(fee);
+            res.render('withdraw-request', { user: req.user, id: uuid.v4(), xrpfees: fee });
+        });
+    }).catch(console.error);
 };
 
 /**

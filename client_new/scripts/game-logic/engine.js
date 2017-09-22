@@ -287,6 +287,9 @@ define([
             self.timeTillStart = info.time_till_start;
             self.startTime = new Date(Date.now() + info.time_till_start);
             self.maxWin = info.max_win;
+            self.maxBet = info.max_bet;
+
+            AppConstants.Engine.MAX_BET = self.maxBet;
 
             // Every time the game starts checks if there is a queue bet and send it
             if (self.nextBetAmount) {
@@ -409,6 +412,9 @@ define([
                         self.startTime = new Date(Date.now() - resp.elapsed);
                         self.joined = resp.joined;
                         self.tableHistory = resp.table_history;
+
+                        self.maxBet = resp.max_bet;
+                        AppConstants.Engine.MAX_BET = self.maxBet;
 
                         if (self.gameState === 'IN_PROGRESS')
                             self.lastGameTick = Date.now();

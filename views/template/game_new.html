@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html>
 {{#def.include('head_new')}}
-<body>
+<body id="game-body">
 
 <div id="game-wrapper">
 
@@ -34,6 +34,9 @@
                     USER_MESSAGE.type = 'collect';
                     USER_MESSAGE.qty = 2;
                 {{?}}
+            {{?? it.contest}}
+                USER_MESSAGE.type = 'contest';
+                USER_MESSAGE.text = "A contest is currently in progress, click here for more info!";
             {{?}}
 
         {{?}}

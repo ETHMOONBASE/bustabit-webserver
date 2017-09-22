@@ -1,0 +1,650 @@
+
+/** ================ Copyright notice ================ **/
+
+/** ================ This is a total restyle in design from base bustabit theme by Paladin. 
+I own Bitcon Gamble Talk and can be contacted on Discord through adding:
+Paladin#6454 or through mail at bustapaladin@gmail.com
+So please keep this notice in place and respect my work. I own all rights to it. 
+================ **/
+@keyframes alert_blink{  
+  50% { color: red; }
+}
+
+@media only screen and (max-device-width: 480px) {
+  .maxBetNotice { 
+    display:none;
+  }
+
+  .hide-for-small { 
+    display:none;
+  }
+}
+
+.player_game_history_table tr td small{
+    color: black !important;
+}
+
+span.alert_blink {
+    font-size: 12px;
+    animation: alert_blink 1s linear infinite;
+}
+
+i.maxBetNotice {
+    font-size: 10px;
+    margin-left: 10px;
+}
+
+#game-message-container.advice {
+    background: #59A9C2;
+}
+
+a {
+    color: #2BA3DA;
+}
+
+#controls-inner-container .register-container .register {
+    color: black;
+}
+
+#strategy-container .strategy-start {
+    background-color: #4CAF50;
+    color: white;
+    border-color: rgb(42, 92, 123);
+}
+
+#strategy-container .strategy-stop {
+    background-color: #FF5722;
+    color: white;
+    border-color: rgb(42, 92, 123);
+}
+
+#strategy-container .strategy-start:disabled, #strategy-container .strategy-stop:disabled, #strategy-container .strategy-select:disabled {
+    background-color: grey;
+    cursor: not-allowed;
+    color: white;
+}
+.login-button {
+    background-color: white;
+    border: 3px solid #2a5c7b;
+    color: #2a5c7b;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  color: black;
+}
+::-moz-placeholder { /* Firefox 19+ */
+  color: black;
+}
+:-ms-input-placeholder { /* IE 10+ */
+  color: black;
+}
+:-moz-placeholder { /* Firefox 18- */
+    color: black;
+}
+
+hr {
+    border: 1px solid #12a5e2;
+    border-width: 1px 0 0;
+}
+
+#controls-inner-container .bet-button {
+    background: transparent;
+    border: 3px solid #1d577b;   
+}
+
+#controls-inner-container .bet-button.disable, #controls-inner-container .bet-button.invalid-bet {
+    background-color: hsl(206, 66%, 76%); 
+}
+
+
+#controls-inner-container .bet-button > span {
+    color: #0188C0;
+}
+
+a:hover {
+    color: #52baea;
+}
+
+.fa-expand:before {
+    content: "\f065";
+    color: #EEF0F1;
+}
+
+
+#controls-selector-container .button-holder.tab-active a {
+    color: rgb(1, 136, 192);
+}
+
+#controls-selector-container .button-holder.tab-active a:hover {
+    color: #48bcec;
+}
+
+#controls-selector-container .button-holder a {
+    color: #0188c0;
+}
+
+#controls-selector-container .button-holder a:hover {
+    color: #48bcec;
+}
+
+#top-bar .title h1 {
+    color: #2BA3DA;
+    line-height: 2rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding-left: 1rem;
+    font-family: "Courier New";
+}
+
+/* Message bar */
+#game-message-container {
+    position: absolute;
+    top: 2rem;
+    right: 0;
+    left: 0;
+    background-color: #181a1e;
+    padding-top: 5px;
+    font-size: 9px;
+}
+
+#chart-inner-container .connection-state {
+    position: absolute;
+    top: 45%;
+    left: 6%;
+    right: 0;
+    text-align: center;
+    font-size: 2rem;
+    background-color: rgba(255, 87, 34, 0.81);
+    line-height: 3rem;
+    color: white;
+    border-radius: 3px;
+}
+
+#controls-selector-container .button-holder:hover a{
+    color: #0188c0;
+}
+
+#controls-selector-container .button-holder.tab-active a{
+    color: #0188c0;
+}
+
+#controls-inner-container .bet-button.cashout {
+    background-color: #21638C;
+}
+
+.user-lost td, .user-lost td a {
+    color: #FF5722;
+}
+
+.user-playing td, .user-playing td a {
+    color: #0188c0;
+}
+
+.user-playing td:hover, .user-playing td a:hover {
+    color:   #00BCD4 
+}
+
+#chat .msg-chat-message.msg-admin-message a {
+    color: #2196F3;
+}
+
+#chat .msg-chat-message .msg-body a {
+    color: #22a2d8;
+}
+
+#chat .tab .selected-border {
+    background-color: #0188c0;
+}
+
+.user-cashed td, .user-cashed td a {
+    color: #8BC34A;
+}
+
+#chart-inner-container .max-profit, #games-log-container .games-log-hash {
+    color: hsla(122, 43%, 56%, 0.8);
+}
+
+#tabs-inner-container .tab-container li.tab:hover a {
+    color: rgb(1, 136, 192);
+}
+
+#tabs-inner-container .tab-container li.tab.tab-active a {
+    color: rgb(1, 136, 192);
+}
+
+#games-log-container .games-log-goodcrash {
+    color: rgba(76, 175, 80, 0.8);
+}
+
+.bet-bar-cashed, .bet-bar-won {
+    background-color: #8BC34A;
+}
+
+#settings-selector-container .tab-holder:hover a {
+    color: rgb(1, 136, 192);
+}
+
+#settings-selector-container .tab-holder.tab-active a {
+    color: rgb(1, 136, 192);
+}
+
+/* edits since 16th of august */
+
+.bet-bar-starting {
+    background-color: #0188c0;
+}
+
+.bet-bar-playing {
+    background-color: #21638C;
+}
+
+tr.user-lost.me {
+    background-color: rgba(214, 66, 19, 0.35);
+}
+.user-lost td, .user-lost td a {
+    color: #FF5722;
+}
+
+tr.user-playing.me {
+    background-color: rgba(68, 140, 191, 0.38);
+}
+
+#controls-inner-container .bet-button,  .bet-button.disable, #controls-inner-container .bet-button.invalid-bet, #controls-inner-container .bet-button:active {
+    box-shadow: none !important;
+}
+
+/* ==========================================================================
+ app css edits (app.css)
+   ========================================================================== */
+
+.index .play-btn-cont .play {
+    
+       background-color: #1d577b;
+  /*   background-color: white;  */
+    color: #12a5e2;
+   
+    outline: none;
+    box-shadow: none;
+    border: 3px solid white;
+}
+
+.index .play-btn-cont .play:hover { 
+     color: #79d7ff;
+
+    background-color: #0188C0;
+}
+
+.index .title {
+    text-align: center;
+    font-size: 4rem;
+    line-height: 4rem;
+    margin-top: 1.5rem;
+    font-family: rbn;
+    font-weight: bold;
+    color: #79d7ff;
+}
+
+
+#top-bar {
+    border-bottom: 1px solid #0188c0;
+    background-color: #1D577B;
+}
+
+#top-bar .nav-item a {
+    line-height: 40px;
+    color: #12a5e2;
+    font-size: 20px;
+}
+
+#top-bar .nav-item a:hover {
+    color: #79eefd;
+}
+
+#top-bar .user-login .balance-bits span {
+    line-height: 40px;
+    color: #e5eefd;
+}
+
+.index .features {
+    color: white;
+    font-weight: bold;
+}
+
+.index a {
+    color: #79eefd;   
+}
+
+.index a:hover {
+    color: #baf7ff;   
+}
+
+.index .licence {
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 1rem;
+    color: white;
+}
+
+.panel {
+    background-color: rgba(192, 231, 255, 0.62);
+    border: 1px solid #12a5e2;
+    margin-top: 2%;
+
+}
+
+
+.panel h1, .panel h2, .panel h3, .panel h4, .panel h5, .panel h6, .panel p, .panel li, .panel dl {
+    color: #2a5c7b;
+}
+
+div.row.faq p {
+    color: black;
+}
+
+.panel a {
+    color: #2a5c7b;
+}
+
+.panel a:hover {
+    color: white;   
+}
+
+
+.faq-nav li a:not(.button) {
+    color: #030608;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.side-nav li a:not(.button):hover, .side-nav li a:not(.button):focus {
+    background: rgba(42, 92, 123, 0.33);
+    color: white !important;
+    padding-left: 7px;
+}
+
+ul.menu li a {
+    color: #1a76af;  
+}
+
+ul.menu li a:hover {
+    color: #1b4c6b;  
+}
+
+.menu .active {
+    color: #3688ce;
+    border-bottom: 1px solid #1d93ea;
+}
+
+.settings a {
+    color: #166e96;
+}
+
+.data b, .data h5 {
+    color: #c4edff;
+    font-size: 15px;
+}
+
+div#statistics.row .column, div#statistics.row .columns {
+    border-left: 1px solid #1d577b;
+}
+
+div#statistics.row strong a {
+    color: white;
+}
+
+.rank:hover {
+    background-color: rgb(29, 87, 123);
+}
+
+strong * {
+    color: #1d577b;
+}
+
+.border-button {
+    border: 2px solid #1d577b;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    color: #247cd4;
+}
+
+.border-button:hover {
+    color: #1d577b;
+    text-shadow: none;
+    background-color: white;
+}
+
+#statistics {
+    padding-top: 15px;
+}
+
+.leaders td {
+    text-align: center;
+    border-bottom: 1px solid #89b7dd;
+}
+
+.fa-sort-down:before, .fa-sort-desc:before {
+    color: #8BC34A;
+}
+
+.fa-sort-up:before, .fa-sort-asc:before {
+    color: #89b951;
+}
+
+.success-wrap {
+    width: 100%;
+    clear: both;
+}
+
+.success-wrap a {
+    color: #74deeb;
+}
+
+/* all pages expect game page /play - app.css */
+
+body#main-body {
+     background-image: url(https://i.imgur.com/bxqzD3R.jpg);
+    background-attachment: scroll;
+    background-position-x: -140px; 
+    background-attachment: fixed;
+   /* background-color: rgba(33, 159, 212, 0.65); */
+    
+}
+
+body#main-body table thead tr th, body#main-body table thead tr td {
+    color: white;
+    background-color: #2a5c7b;
+}
+
+body#main-body div.play-btn-cont p {
+    text-align: center;
+    font-style: italic;
+    color: #1d577b;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+body#main-body #top-bar .title h1 {
+    color: #2BA3DA;
+    line-height: 3rem;
+    font-size: 2rem;
+    font-weight: bold;
+    padding-left: 1rem;
+    font-family: "Courier New";
+}
+
+body#main-body #top-bar .title h1:hover {
+    color: #79eefd;
+}
+
+body#main-body table tr.even, body#main-body table tr.alt, body#main-body table tr:nth-of-type(even) {
+    background: #cbe0ed;
+}
+
+body#main-body table tr:hover td,  body#main-body table tr:hover td a {
+              color: white;
+}
+
+body#main-body table tr:hover {
+    background: #35607B;
+}
+
+body#main-body strong {
+    color: #2a5c7b;
+}
+
+body#main-body small {
+    color: #0c0c0c;
+}
+
+body#main-body .data {
+    background: rgb(29, 120, 177);
+}
+
+/* ==========================================================================
+ header edits (header.css)
+   ========================================================================== */
+
+body#main-body nav-top-bar h1.title  {
+    color: #2BA3DA !important;
+}
+
+body#main-body .nav-top-bar {
+    border-bottom: 1px solid #0188c0;
+    background-color: #1D577B;
+}
+
+body#main-body .nav-top-bar .balance-bits {
+    color: #3fc3ff;
+}
+
+body#main-body .nav-top-bar .title h1 { 
+        color: #2BA3DA !important;
+}
+
+body#main-body .success {
+    background-color: rgba(29, 87, 123, 0.66);
+    color: #f5f5f5;
+    border: 1px solid white;
+    border-radius: 5px;
+    margin-top:  1%;
+}
+
+body#main-body table.stats small {
+    color: #000000;
+    font-size: 11px;
+}
+
+/* ==========================================================================
+ register form and login form (sign.css)  new css file applied to register and login pages
+   ========================================================================== */
+
+body#main-body label {
+    color: #06202f;
+}
+
+body#main-body input * {
+    box-shadow: none !important;
+    outline: none;
+}
+
+body#main-body input {
+    background-color: transparent;
+    color: #1d577b;
+    box-shadow: none;
+    border-radius: 3px;
+    border: 1px solid white;
+}
+
+body#main-body input:hover {
+    background-color: #1d577b;
+    box-shadow: none;
+    border-radius: 3px;
+    border-color: #d2e3f7;
+    color: white;
+} 
+
+body#main-body input:active, body#main-body input:focus, body#main-body input[type="text"]:focus, body#main-body input[type="email"]:focus, body#main-body input[type="password"]:focus {
+    background-color: #1d577b !important;
+    box-shadow: none;
+    border-radius: 3px;
+    color: white;
+     border: 1px solid #0188C0;
+}
+
+body#main-body #registerSubmit, body#main-body #loginSubmit {
+    color: #275d80;
+    border: 2px solid #1d577b;
+    border-radius: 5px;
+    background-color: #a6c7f2;
+    font-weight: bold;
+}
+
+body#main-body #registerSubmit:hover, body#main-body #loginSubmit:hover {
+    color: #a6c7f2;
+    background-color: #275d80;
+}
+
+body#main-body h5 small a {
+    color: #071b27;
+    font-weight: bold;
+}
+
+body#main-body h5 small a:hover {
+    color: #1D577B;
+}
+
+body#main-body small {
+    color: #ececec;   
+}
+
+body#main-body .login a, .register a {
+    color: white;
+}
+body#main-body .login a:hover, .register a:hover {
+    color: #79eefd;
+}
+
+@media (max-width: 1024px) {
+body#main-body #top-bar .nav-item a {
+    color: white;
+}
+body#main-body   #top-bar .nav-item a:hover {
+    color: #79eefd;
+}
+} /* end media query */
+
+/* ==========================================================================
+  dark theme edits (darkTheme.css)
+   ========================================================================== */
+
+.login-button:hover {
+    background-color: #2a5c7b !important;
+    border: 3px solid white !important;
+}
+
+#controls-inner-container .register-container .register {
+    color: white;
+}
+
+#players-container table .th-inner {
+    color: rgba(33, 150, 243, 0.65);
+}
+
+#games-log-container table .th-inner {
+    color: rgba(33, 150, 243, 0.65);
+}
+
+#game-right-container {
+    border-color: rgba(1, 136, 192, 0.39);
+}
+
+#tabs-inner-container, #tabs-inner-container .log-chat-container {
+    border-color: rgba(1, 136, 192, 0.39);
+}
+
+#controls-container {
+    border-color: rgba(1, 136, 192, 0.39);
+}

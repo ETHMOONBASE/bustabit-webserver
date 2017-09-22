@@ -1,4 +1,4 @@
-{{##def.page_title = 'Withdraw Request' #}}
+{{##def.page_title = 'Investment Request' #}}
 
 {{##def.content:
 <script type="text/javascript">
@@ -12,7 +12,6 @@
 </script>
 <form action="/logout" method="post" id='logout'></form>
 <div class="content row panel radius">
-
     <div class="settings">
         <div class="small-2 columns">
             <ul class="menu">
@@ -25,17 +24,17 @@
                 <li>
                     <a href="/deposit">Deposit</a>
                 </li>
-                <li >
-                    <a class="active" href="/withdraw">Withdraw</a>
+                <li>
+                    <a href="/withdraw">Withdraw</a>
                 </li>
                 <li>
                     <a href="/transfer">Transfer</a>
                 </li>
-                <li>
-                    <a href="/investment">Investment</a>
+                <li class="active">
+                    Investment
                 </li>
                 <li>
-                    <a href="/support">Support</a>
+                    <a href="support">Support</a>
                 </li>
                 <li>
                     <a onclick="logout();">
@@ -45,37 +44,28 @@
             </ul>
         </div>
         <div class="small-10 columns sets-content">
-            <h4>Request A Withdrawal</h4>
+            <h4>Invest/Divest Request</h4>
 
             <p>
-                <strong>Warning:</strong> Make sure the destination doesn't require minimum funding to accept deposits.<br>
-                <strong>Note:</strong> You are paying the fees, if you withdraw 1000 rips and the fees are 15 rips, you will receive 985 rips<br>
-                <br>
-                <strong>Current Fees:</strong> {{= it.xrpfees }} Rips <!--(Not a fixed number, this can change at anytime)--><br>
-                <strong>Minimum withdraw: {{#def.format: {n: (it.xrpfees + 1000)*100, decimals: 0} }} Rips</strong>
+                <strong>Warning:</strong> Your invest/divest requests aren't processed right away there will be a delay of 1 to 20 games.<br>
+                <strong>Warning:</strong> You cannot divest till it's been 24 hours since your last investment.<br>
+                <strong>Note:</strong> <span style="font-size: 12px;">When investing, you get a % share of the house bankroll. The profit is then divided proportionately to the % share of the house bankroll you own.</span><br>
+                <strong>Note:</strong> <span style="font-size: 12px;">When divesting, since the requests aren't processed right away, it may happen that the desired amount to divest isn't available in your investment anymore due to wins on the side of the players. If this happen, your request will be canceled and the amount of the request replaced with 0. We recommend to not divest everything all at once.</span><br>
             </p>
-            <form action="/withdraw-request" method="post">
+            <form action="/investment-request" method="post">
                 <input style="display:none" type="text" name="fakeusernameremembered"/>
                 <input style="display:none" type="password" name="fakepasswordremembered"/>
 
-                <!-- If you edit this, keep in mind lower fees might get your transaction stuck and never get confirmed -->
-                <input style="display:none" type="hidden" name="fees" value="{{= it.xrpfees }}"/>
-
-                <label for="amount">Rips amount to withdraw (1 Rips is 0.000001 XRP)</label>
-                <input type="number" id="amount" name="amount" value="{{= it.xrpfees + 1000 }}" min="{{= it.xrpfees + 1000 }}" step="1" required/>
-                <label for="destination">Destination Address</label>
-                <input type="text" id="destination" name="destination" required/>
-                <label for="destination">Destination Tag <i>(Optional)</i></label>
-                <input type="text" id="withdrawal_tag" name="withdrawal_tag" value=""/>
+                <label for="amount">Rips <span style="font-size: 12px;">(Positive amount to invest or negative amount to divest <i>(1 Rips is 0.000001 XRP)</i>)</span></label>
+                <input type="number" id="amount" name="amount" value="0" step="1" autocomplete="off" required/>
                 <label for="password">Your password</label>
                 <input type="password" id="password" name="password" autocomplete="off"/>
                 {{?it.user.mfa_secret}}
                     <label for="otp">2FA Code</label>
                     <input type="text" id="otp" name="otp" autocomplete="off" pattern="[0-9]{6}" required />
                 {{?}}
-                <a href="/withdraw" class="border-button ">Back</a>
+                <a href="/investment" class="border-button ">Back</a>
                 <input class="border-button right blue" type="submit"/>
-                <input type="hidden" name="withdrawal_id" value="{{= it.id}}" />
             </form>
         </div>
     </div>

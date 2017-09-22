@@ -30,7 +30,7 @@
                         </strong>
                     </td>
                     <td>
-                        {{#def.format: { n: play.bet } }} bits
+                        {{#def.format: { n: play.bet } }} rips
                     </td>
                     <td>
                         {{? play.cash_out}}
@@ -48,7 +48,7 @@
                     </td>
                     <td>
                         {{#def.format: { n: (play.cash_out ? play.cash_out : 0) - play.bet + ( play.bonus ? play.bonus : 0) , decimals: 2 } }}
-                        bits
+                        rips
                     </td>
                 </tr>
             {{~}}

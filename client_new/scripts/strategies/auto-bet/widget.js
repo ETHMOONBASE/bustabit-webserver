@@ -79,7 +79,7 @@ define([
                 D.div({ className: 'stra-base-bet' },
                     D.span({ className: 'bet-title' }, 'Base Bet: '),
                     D.input({ type: 'text', ref: 'bet_amount', onChange: this.updateBetAmount, value: this.state.baseBet, disabled: this.state.active }),
-                    D.span(null, 'Bits')
+                    D.span(null, 'Rips')
                 ),
                 D.div({ className: 'stra-cash-out-at' },
                     D.span({ className: 'bet-title' }, 'Auto Cashout at:'),
@@ -89,7 +89,7 @@ define([
                 D.div({ className: 'stra-max-bet-stop' },
                     D.span({ className: 'bet-title' }, 'Stop if bet is > '),
                     D.input({ type: 'text', ref: 'max_bet_stop', onChange: this.updateMaxBetStop, value: this.state.maxBetStop, disabled: this.state.active }),
-                    D.span(null, 'Bits')
+                    D.span(null, 'Rips')
                 ),
                 D.div({ className: 'stra-on-loss' },
                     D.span({ className: 'bet-title' }, 'On loss:'),

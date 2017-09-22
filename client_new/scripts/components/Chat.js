@@ -36,10 +36,51 @@ define([
         "'": '&#39;'
       };
 
-      return function(str) {
-        return String(str).replace(/[&<>"']/g, function (s) {
-          return entityMap[s];
+      var smileyMap={
+        "censure.png": ["fuck", "fucker", "bitch", "asshole", "cunt", "fag ", "faggot", "whore", "jap ", "nig ", "nigger", "nigga", "negro", " :censure: "],
+        "cry.png": [":,(", ":&#39;(", " :cry: "],
+        "cat.png": [":3", " :cat: "],
+        "eksdee.png": [" xd ", " xD ", " XD ", " :eksdee: "],
+        "angry.png": ["&gt;:(", " :angry: "],
+        "frown.png": [":(", "):", " :frown: "],
+        "grinning.png": [":d", ":D", " :grinning: "],
+        "hushed.png": [":o", " :hushed: "],
+        "kissing_smiling_eyes.png": [":*", ";*", " :kiss: "],
+        "neutral_face.png": ["._.", " :neutral_face: "],
+        "open_mouth.png": [":O", " :open_mouth: "],
+        "smile.png": [":))", " :smile: "],
+        "smile_winking_eye.png": [";D", " :smile_winking_eye: "],
+        "smiley.png": [":)", " :smiley: "],
+        "smiley_reversed.png": ["(:", " :smiley_reversed: "],
+        "sob.png": ["D,:", "D&#39;:", ":,((", ":&#39;((", "T_T", " :sob: "],
+        "stuck_out_tongue.png": [":p", ":P", " :stuck_out_tongue: "],
+        "stuck_out_tongue_winking_eye.png": [";p", ";P", " :stuck_out_tongue_winking_eye: "],
+        "thinking.png": [" :thinking: "],
+        "tired_face.png": ["D:", " :tired_face: "],
+        "very_frown.png": [":((", ")):", " :very_frown: "],
+        "wink.png": [";)", "(;", " :wink: "]
+      };
+
+      var insertSmiley = function(basePath,smileys){
+        var replacements=[];
+        Object.keys(smileys).forEach(function(file){
+          var _file="<img src=\""+basePath+file+"\" height=\"16px\" width=\"16px\"\>";
+          smileys[file].forEach(function(chars){
+              var reg=new RegExp(chars.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1"),"g");
+              replacements.push([reg,_file]);
+          });
         });
+        return function(text){
+          return replacements.reduce(function(line,replacement){
+            return line.replace(replacement[0],replacement[1]);
+          },text);
+        }
+      }("https://winxrp.com/img/emojis/", smileyMap);
+
+      return function(str) {
+        return insertSmiley(String(str).replace(/[&<>"']/g, function (s) {
+          return entityMap[s];
+        }));
       };
     })();
 
@@ -292,6 +333,8 @@ define([
 
                 if (message.role === 'admin')
                     pri += ' msg-admin-message';
+                else
+                  pri += ' msg-'+message.role+'-message';
 
                 var username = ChatEngine.username;
 

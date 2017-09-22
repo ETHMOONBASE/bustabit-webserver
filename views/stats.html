@@ -4,7 +4,7 @@
     <div class="content row panel radius">
         <div class="row">
             <div class="large-6 columns">
-                <h5>Bustabit.com Statistics</h5>
+                <h5>Winxrp.com Statistics</h5>
                 <small>Generated {{! it.generated }}</small>
                 <table class="stats">
                     <tbody>
@@ -30,15 +30,15 @@
 
                         <tr>
                             <td><b>Deposits:</b></td>
-                            <td>{{#def.format: {n: it.stats.deposits.sum} }} bits</td>
+                            <td>{{#def.format: {n: it.stats.deposits.sum} }} rips</td>
                         </tr>
                         <tr>
                             <td><b>Withdrawals:</b></td>
-                            <td>{{#def.format: { n: it.stats.withdrawals.sum } }} bits</td>
+                            <td>{{#def.format: { n: it.stats.withdrawals.sum } }} rips</td>
                         </tr>
                         <tr>
                             <td class="strong">Net:</td>
-                            <td class="strong">{{#def.format: { n: (it.stats.deposits.sum - (it.stats.withdrawals.sum * -1)) } }} bits</td>
+                            <td class="strong">{{#def.format: { n: (it.stats.deposits.sum - (it.stats.withdrawals.sum * -1)) } }} rips</td>
                         </tr>
                         <tr>
                             <td></td>
@@ -46,32 +46,62 @@
                         </tr>
                         <tr>
                             <td><b>Total Wagered:</b></td>
-                            <td>{{#def.format: {n: it.stats.plays.total_bet } }} bits</td>
+                            <td>{{#def.format: {n: it.stats.plays.total_bet } }} rips</td>
                         </tr>
                         <tr>
                             <td><b>Players won in cashed:</b></td>
-                            <td>{{#def.format: {n: it.stats.plays.cashed_out } }} bits <small>(
+                            <td>{{#def.format: {n: it.stats.plays.cashed_out } }} rips <small>(
                                    {{= (it.stats.plays.cashed_out / it.stats.plays.total_bet * 100).toFixed(2) }}%
                                 )</small></td>
                         </tr>
                         <tr>
                             <td><b>Players won in bonuses:</b></td>
-                            <td>{{#def.format: {n: it.stats.plays.bonused } }} bits <small>(
+                            <td>{{#def.format: {n: it.stats.plays.bonused } }} rips <small>(
                                 {{= (it.stats.plays.bonused / it.stats.plays.total_bet * 100).toFixed(2) }}%
                                 )</small></td>
                         </tr>
                         <tr>
                             <td><b>Players won in total: </b></td>
-                            <td>{{#def.format: {n: (9 + it.stats.plays.cashed_out + it.stats.plays.bonused) } }} bits <small>(
+                            <td>{{#def.format: {n: (9 + it.stats.plays.cashed_out + it.stats.plays.bonused) } }} rips <small>(
                                 {{= ((it.stats.plays.cashed_out + it.stats.plays.bonused) / it.stats.plays.total_bet * 100).toFixed(2) }}%
                                 )</small></td>
                         </tr>
                         <tr>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td class="strong">Investments:</td>
+                            <td>
+                                {{#def.format: {n: it.stats.investments.sum } }} rips <small>(
+                                    {{= ( it.stats.investments.sum / (it.stats.plays.total_bet - it.stats.plays.cashed_out - it.stats.plays.bonused + it.stats.bankroll_offset + it.stats.total_invested.sum) * 100).toFixed(2) }}% BR
+                                    )</small>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="strong">Total Invested:</td>
+                            <td>
+                                {{#def.format: {n: it.stats.total_invested.sum } }} rips
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="strong">Investors Profit:</td>
+                            <td class="strong">
+                                {{#def.format: {n: it.stats.investments.sum - it.stats.total_invested.sum } }} rips <small>(
+                                    {{= ( (it.stats.investments.sum - it.stats.total_invested.sum) / it.stats.total_invested.sum * 100).toFixed(2) }}%
+                                    )</small>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
                             <td class="strong">Our Profit:</td>
                             <td class="strong">
-                                {{#def.format: {n: it.stats.plays.total_bet - it.stats.plays.cashed_out - it.stats.plays.bonused  } }} bits
+                                {{#def.format: {n: (it.stats.plays.total_bet - it.stats.plays.cashed_out - it.stats.plays.bonused) - (it.stats.investments.sum - it.stats.total_invested.sum) } }} rips
                                 <small>(
-                                    {{= ((it.stats.plays.total_bet - it.stats.plays.cashed_out - it.stats.plays.bonused ) / it.stats.plays.total_bet * 100).toFixed(2) }}%
+                                    {{= (((it.stats.plays.total_bet - it.stats.plays.cashed_out - it.stats.plays.bonused) - (it.stats.investments.sum - it.stats.total_invested.sum)) / it.stats.plays.total_bet * 100).toFixed(2) }}%
                                     )</small>
                             </td>
                         </tr>
@@ -82,13 +112,13 @@
                         <tr>
                             <td class="strong">Bankroll:</td>
                             <td class="strong">
-                                {{#def.format: {n: it.stats.plays.total_bet - it.stats.plays.cashed_out - it.stats.plays.bonused + it.stats.bankroll_offset } }} bits
+                                {{#def.format: {n: it.stats.plays.total_bet - it.stats.plays.cashed_out - it.stats.plays.bonused + it.stats.bankroll_offset + it.stats.total_invested.sum } }} rips
                             </td>
                         </tr>
                         <tr>
                             <td class="strong">Max win per game:</td>
                             <td>
-                                {{#def.format: {n: (it.stats.plays.total_bet - it.stats.plays.cashed_out - it.stats.plays.bonused + it.stats.bankroll_offset)*0.03 } }} bits
+                                {{#def.format: {n: (it.stats.plays.total_bet - it.stats.plays.cashed_out - it.stats.plays.bonused + it.stats.bankroll_offset + it.stats.total_invested.sum)*0.03 } }} rips
                             </td>
                         </tr>
                         <tr>

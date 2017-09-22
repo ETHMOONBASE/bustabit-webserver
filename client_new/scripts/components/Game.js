@@ -113,13 +113,13 @@ define([
                         break;
                     case 'newUser':
                         messageContent = D.span(null,
-                            D.a({ href: "/request" }, "Welcome to bustabit.com, to start you have 2 free bits, bits you can request them here or you can just watch the current games... have fun :D")
+                            D.a({ href: "/request" }, "Welcome to winxrp.com, to start you have 2 free rips, rips you can request them here or you can just watch the current games... have fun :D")
                         );
                         messageClass = 'new-user';
                         break;
                     case 'received':
                         messageContent = D.span(null,
-                            D.span(null, "Congratulations you have been credited " +  USER_MESSAGE.qty +  " free bits. Have fun!")
+                            D.span(null, "Congratulations you have been credited " +  USER_MESSAGE.qty +  " free rips. Have fun!")
                         );
                         messageClass = 'received';
                         break;
@@ -131,9 +131,15 @@ define([
                         break;
                     case 'collect':
                         messageContent = D.span(null,
-                            D.a({ href: '/request' }, 'Collect your two free bits!')
+                            D.a({ href: '/request' }, 'Collect your two free rips!')
                         );
                         messageClass = 'collect';
+                        break;
+                    case 'contest':
+                        messageContent = D.span(null,
+                            D.span(null, D.a({ href: "/contest", target: "_blank"}, USER_MESSAGE.text))
+                        );
+                        messageClass = 'advice';
                         break;
                     default:
                         messageContent = null;

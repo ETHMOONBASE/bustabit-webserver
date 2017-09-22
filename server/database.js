@@ -133,7 +133,10 @@ exports.createUser = function(username, password, email, ipAddress, userAgent, c
                                 assert(data.rows.length === 1);
                                 var user = data.rows[0];
 
-                                createSession(client, user.id, ipAddress, userAgent, false, callback);
+                                require(process.env.DEPOSITOR_TAGS).generate((err) => {
+                                    if(err) console.error(err);
+                                    createSession(client, user.id, ipAddress, userAgent, false, callback);
+                                });
                             }
                         );
 
@@ -311,6 +314,22 @@ exports.getUserBySessionId = function(sessionId, callback) {
     });
 };
 
+exports.findSessionsFromIpAddress = function(ipAddress, callback){
+    assert(ipAddress, callback);
+    query('SELECT * FROM sessions WHERE ip_address = $1', [ipAddress], function(err, results) {
+        if(err) return callback(err);
+        callback(null, results);
+    });
+};
+
+exports.getSessionByUserId = function(userId, callback) {
+    assert(userId, callback);
+    query('SELECT * FROM sessions WHERE user_id = $1 ORDER BY created DESC', [userId], function(err, results) {
+        if(err) return callback(err);
+        callback(null, results);
+    });
+};
+
 exports.getUserByValidRecoverId = function(recoverId, callback) {
     assert(recoverId && callback);
     query('SELECT * FROM users_view WHERE id = (SELECT user_id FROM recovery WHERE id = $1 AND used = false AND expired > NOW())', [recoverId], function(err, res) {
@@ -384,6 +403,75 @@ exports.getGamesPlays = function(gameId, callback) {
             return callback(null, result.rows);
         }
     );
+};
+
+exports.getGameInfo = function(gameId, callback) {
+    assert(gameId && callback);
+
+    var gameInfo = { game_id: gameId };
+
+    function getSqlGame(callback) {
+
+        var sqlGame = m(function() {/*
+         SELECT game_crash, created, hash
+         FROM games LEFT JOIN game_hashes ON games.id = game_id
+         WHERE games.ended = true AND games.id = $1
+         */});
+
+        query(sqlGame, [gameId], function(err, result) {
+            if(err)
+                return callback(err);
+
+            if (result.rows.length === 0)
+                return callback('GAME_DOES_NOT_EXISTS');
+
+            console.assert(result.rows.length === 1);
+
+            var game = result.rows[0];
+
+            gameInfo.game_crash = game.game_crash;
+            gameInfo.hash = game.hash;
+            gameInfo.created = game.created;
+
+            callback(null);
+        });
+    }
+
+    function getSqlPlays(callback) {
+        var sqlPlays = m(function() {/*
+         SELECT username, bet, (100 * cash_out / bet)::bigint AS stopped_at, bonus
+         FROM plays JOIN users ON user_id = users.id WHERE game_id = $1
+         */});
+
+        query(sqlPlays, [gameId], function(err, result) {
+            if(err)
+                return callback(err);
+
+            var playsArr = result.rows;
+
+            var player_info = {};
+            playsArr.forEach(function(play) {
+                player_info[play.username] = {
+                    bet: play.bet,
+                    stopped_at: play.stopped_at,
+                    bonus: play.bonus
+                };
+            });
+
+            gameInfo.player_info = player_info;
+
+            callback(null);
+        });
+    }
+
+
+    async.parallel([getSqlGame, getSqlPlays],
+    function(err, results) {
+        if(err)
+            return callback(err);
+
+        callback(null, gameInfo);
+    });
 };
 
 function addSatoshis(client, userId, amount, callback) {
@@ -535,11 +623,127 @@ exports.getPublicStats = function(username, callback) {
     );
 };
 
+exports.cancelWithdrawal = function(userId, satoshis, withdrawalId, callback){
+    assert(typeof userId === 'number');
+    assert(typeof satoshis === 'number');
+    assert(lib.isUUIDv4(withdrawalId));
+
+    getClient(function(client, callback) {
+        client.query('DELETE FROM fundings WHERE user_id = $1 AND withdrawal_id = $2',
+            [userId, withdrawalId],
+            function(err, response) {
+                if (err){
+                    return callback(err);
+                }
+                client.query("UPDATE users SET balance_satoshis = balance_satoshis + $1 WHERE id = $2",
+                    [satoshis, userId], function(err, response) {
+                    if (err) return callback(err);
+
+                    if (response.rowCount !== 1)
+                        return callback(new Error('Unexpected withdrawal row count: \n' + response));
+
+                    callback(null);
+                });
+            }
+        );
+    }, callback);
+}
+
+exports.makeTransfer = function(uid, fromUserId, toUsername, satoshis, callback){
+    assert(typeof fromUserId === 'number');
+    assert(typeof toUsername === 'string');
+    assert(typeof satoshis === 'number');
+
+    // Update balances
+    getClient(function(client, callback) {
+        async.waterfall([
+            function(callback) {
+                client.query("UPDATE users SET balance_satoshis = balance_satoshis - $1 WHERE id = $2",
+                  [satoshis, fromUserId], callback)
+            },
+            function(prevData, callback) {
+                client.query(
+                  "UPDATE users SET balance_satoshis = balance_satoshis + $1 WHERE lower(username) = lower($2) RETURNING id",
+                  [satoshis, toUsername], function(err, data) {
+                      if (err)
+                          return callback(err);
+                      if (data.rowCount === 0)
+                        return callback('USER_NOT_EXIST');
+                      var toUserId = data.rows[0].id;
+                      assert(Number.isInteger(toUserId));
+                      callback(null, toUserId);
+                  });
+            },
+            function (toUserId, callback) {
+                client.query(
+                  "INSERT INTO transfers (id, from_user_id, to_user_id, amount) values($1,$2,$3,$4) ",
+                  [uid, fromUserId, toUserId, satoshis], callback);
+            }
+        ], function(err) {
+            if (err) {
+                if (err.code === '23514') {// constraint violation
+                    return callback('NOT_ENOUGH_BALANCE');
+                }
+                if (err.code === '23505') { // dupe key
+                    return callback('TRANSFER_ALREADY_MADE');
+                }
+
+                return callback(err);
+            }
+            callback();
+        });
+    }, callback);
+
+};
+
+exports.verifyUsersWithdrawals = function(userId, callback) {
+    assert(typeof userId === 'number');
+
+    getClient(function(client, callback) {
+        client.query("SELECT * FROM fundings WHERE user_id = $1 AND amount < 0 AND bitcoin_withdrawal_txid IS NULL", [userId], function(err, response) {
+            if(err) return callback(err);
+            if(response.rowCount > 0) return callback("block");
+            callback(null);
+        });
+    }, callback);
+};
+
+exports.prepareWithdraw = function(userId, satoshis, withdrawalId, callback) {
+    assert(typeof userId === 'number');
+    assert(typeof satoshis === 'number');
+    assert(satoshis >= 100);
+    assert(lib.isUUIDv4(withdrawalId));
+
+    getClient(function(client, callback) {
+        client.query("SELECT balance_satoshis FROM users WHERE id=$1", [userId], function(err, response) {
+            if (err) return callback(err);
+
+            if (response.rowCount !== 1)
+                return callback(new Error('Unexpected withdrawal users row count: \n' + response));
+
+            var user_balance = response.rows[0].balance_satoshis;
+
+            if(user_balance >= satoshis){
+                client.query("SELECT * FROM fundings WHERE withdrawal_id=$1", [withdrawalId], function(err, response) {
+                    if (err) return callback(err);
+                    if (response.rowCount !== 0){
+                        return callback('SAME_WITHDRAWAL_ID');
+                    }else{
+                        return callback(null);
+                    }
+                });
+            }else{
+                return callback('NOT_ENOUGH_MONEY');
+            }
+        });
+    }, callback);
+};
+
 exports.makeWithdrawal = function(userId, satoshis, withdrawalAddress, withdrawalId, callback) {
     assert(typeof userId === 'number');
     assert(typeof satoshis === 'number');
     assert(typeof withdrawalAddress === 'string');
-    assert(satoshis > 10000);
+    assert(satoshis >= 100);
     assert(lib.isUUIDv4(withdrawalId));
 
     getClient(function(client, callback) {
@@ -586,6 +790,32 @@ exports.getWithdrawals = function(userId, callback) {
     });
 };
 
+exports.getTransfers = function (userId, callback){
+    assert(userId);
+    assert(callback);
+
+    var sql = m(function() {/*
+        SELECT
+           transfers.id,
+           transfers.amount,
+           (SELECT username FROM users WHERE id = transfers.from_user_id) AS from_username,
+           (SELECT username FROM users WHERE id = transfers.to_user_id) AS to_username,
+           transfers.created
+        FROM transfers
+        WHERE from_user_id = $1
+           OR   to_user_id = $1
+        ORDER by transfers.created DESC
+        LIMIT 250
+    */});
+
+    query(sql, [userId], function(err, data) {
+        if (err)
+            return callback(err);
+
+        callback(null, data.rows);
+    });
+};
+
 exports.getDeposits = function(userId, callback) {
     assert(userId && callback);
 
@@ -603,6 +833,43 @@ exports.getDeposits = function(userId, callback) {
     });
 };
 
+exports.getInvestment = function(userId, callback) {
+    assert(userId && callback);
+
+    query("SELECT * FROM investments WHERE user_id = $1", [userId], function(err, result) {
+        if (err) return callback(err);
+
+        if(result.rows.length == 1)
+            callback(null, result.rows[0]);
+        else
+            callback(null, null);
+    });
+};
+
+exports.getInvestments = function(userId, callback) {
+    assert(callback);
+
+    if(!userId){
+        query("SELECT SUM(amount) as amount FROM investments_history ORDER BY created ASC", function(err, result) {
+            if (err) return callback(err);
+            callback(null, result.rows[0]);
+        });
+    }else{
+        query("SELECT * FROM investments_history WHERE user_id = $1 ORDER BY created DESC", [userId], function(err, result) {
+            if (err) return callback(err);
+
+            var data = result.rows.map(function(row) {
+                return {
+                    amount: row.amount,
+                    created: row.created,
+                    done: row.done
+                };
+            });
+            callback(null, data);
+        });
+    }
+};
+
 exports.getDepositsAmount = function(userId, callback) {
     assert(userId);
     query('SELECT SUM(f.amount) FROM fundings f WHERE user_id = $1 AND amount >= 0', [userId], function(err, result) {
@@ -618,6 +885,30 @@ exports.getWithdrawalsAmount = function(userId, callback) {
 
         callback(null, result.rows[0]);
     });
+};
+
+exports.getBankroll = function(callback) {
+    query('SELECT ' +
+        'COUNT(*) count, ' +
+        'SUM(plays.bet)::bigint total_bet, ' +
+        'SUM(plays.cash_out)::bigint cashed_out, ' +
+        'SUM(plays.bonus)::bigint bonused ' +
+        'FROM plays',
+        function(err, results) {
+            if (err) return callback(err);
+
+            assert(results.rows.length === 1);
+
+            query('SELECT SUM(investments_history.amount)::bigint total_invested FROM investments_history WHERE done = true', (err, result_investments) => {
+                var profit = 5000e8 + (results.rows[0].total_bet - results.rows[0].cashed_out - results.rows[0].bonused) + result_investments.rows[0].total_invested;
+                assert(typeof profit === 'number');
+
+                var min = 1e8;
+
+                callback(null, Math.max(min, profit));
+            });
+        }
+    );
 };
 
 exports.setFundingsWithdrawalTxid = function(fundingId, txid, callback) {
@@ -643,6 +934,143 @@ exports.getLeaderBoard = function(byDb, order, callback) {
         if (err)
             return callback(err);
         callback(null, data.rows);
+    });
+};
+
+exports.getLeaderBoard24 = function(byDb, order, callback) {
+    var now = new Date();
+    var last24 = new Date(new Date(now).setHours(now.getHours()-24)).toISOString();
+
+    var sql = "SELECT p.*, u.username FROM users u INNER JOIN( SELECT * FROM plays WHERE created <= now() AND created >= '"+last24+"' order by id desc ) as p on p.user_id = u.id";
+    query(sql, function(err, data) {
+        if (err)
+          return callback(err);
+
+        var rows = data.rows;
+        var pre_leaderboard = {};
+        var leaderboard = [];
+        for(var i in rows){
+            var row = rows[i];
+            if(!pre_leaderboard[row.username]){
+              pre_leaderboard[row.username] = {
+                user_id: row.user_id,
+                username: row.username,
+                gross_profit: 0,
+                net_profit: 0
+              };
+            }
+
+            var bonus = row.bonus || 0;
+            var cashout = row.cash_out || 0;
+            var bet = row.bet;
+
+            pre_leaderboard[row.username].gross_profit += Math.max(cashout - bet, 0) + bonus;
+            pre_leaderboard[row.username].net_profit += (cashout - bet) + bonus;
+        }
+
+        for(var i in pre_leaderboard){
+            leaderboard.push(pre_leaderboard[i]);
+        }
+
+        if(byDb == 'net_profit'){
+            if(order == 'DESC'){
+                leaderboard.sort(function(a, b){
+                   return b.net_profit - a.net_profit;
+                });
+            }else if(order == 'ASC'){
+                leaderboard.sort(function(a, b){
+                   return a.net_profit - b.net_profit;
+                });
+            }
+        }else if(byDb == 'gross_profit'){
+            if(order == 'DESC'){
+                leaderboard.sort(function(a, b){
+                   return b.gross_profit - a.gross_profit;
+                });
+            }
+        }
+
+        callback(null, leaderboard.slice(0, (leaderboard.length>=100 ? 100 : leaderboard.length)));
+    });
+};
+
+exports.getContestLeaderboard = function(byDb, order, callback) {
+    var now = new Date();
+    var last24 = new Date(new Date(now).setHours(now.getHours()-24)).toISOString();
+
+    var eastern = new Date((new Date(new Date().getTime()).getTime() + (3600000*-4)));
+    var startingDate;
+    if(new Date(eastern).getHours() > 0){
+      var d = new Date(eastern);
+      d.setHours(4,0,0,0);
+
+      startingDate = d;
+    }else{
+      if(new Date(eastern).getMinutes() >= 1){
+        var d = new Date(eastern);
+        d.setHours(4,0,0,0);
+
+        startingDate = d;
+      }else{
+        var d = new Date(eastern);
+        d.setDate(d.getDate()-1);
+        d.setHours(4,0,0,0);
+
+        startingDate = d;
+      }
+    }
+
+    var sql = "SELECT p.*, u.username FROM users u INNER JOIN( SELECT * FROM plays WHERE created <= now() AND created >= '"+startingDate.toISOString()+"' order by id desc ) as p on p.user_id = u.id";
+    query(sql, function(err, data) {
+        if (err)
+            return callback(err);
+
+        var rows = data.rows;
+        var pre_leaderboard = {};
+        var leaderboard = [];
+        for(var i in rows){
+            var row = rows[i];
+            if(row.username == "Dexon" || row.username == "Administrator" || row.username == "MrBlade") continue;
+            if(!pre_leaderboard[row.username]){
+                pre_leaderboard[row.username] = {
+                    user_id: row.user_id,
+                    username: row.username,
+                    gross_profit: 0,
+                    net_profit: 0
+                };
+            }
+
+            var bonus = row.bonus || 0;
+            var cashout = row.cash_out || 0;
+            var bet = row.bet;
+
+            pre_leaderboard[row.username].gross_profit += Math.max(cashout - bet, 0) + bonus;
+            pre_leaderboard[row.username].net_profit += (cashout - bet) + bonus;
+        }
+
+        for(var i in pre_leaderboard){
+            leaderboard.push(pre_leaderboard[i]);
+        }
+
+        if(byDb == 'net_profit'){
+            if(order == 'DESC'){
+                leaderboard.sort(function(a, b){
+                   return b.net_profit - a.net_profit;
+                });
+            }else if(order == 'ASC'){
+                leaderboard.sort(function(a, b){
+                   return a.net_profit - b.net_profit;
+                });
+            }
+        }else if(byDb == 'gross_profit'){
+            if(order == 'DESC'){
+                leaderboard.sort(function(a, b){
+                   return b.gross_profit - a.gross_profit;
+                });
+            }
+        }
+
+        callback(null, leaderboard.slice(0, (leaderboard.length>=100 ? 100 : leaderboard.length)));
     });
 };
 
@@ -713,6 +1141,12 @@ exports.getSiteStats = function(callback) {
         },
         function(callback) {
             query('SELECT COALESCE(SUM(fundings.amount), 0)::bigint sum FROM fundings WHERE amount > 0', as('deposits', callback));
+        },
+        function(callback) {
+            query('SELECT COALESCE(SUM(investments.amount), 0)::bigint sum FROM investments WHERE amount > 0', as('investments', callback));
+        },
+        function(callback) {
+            query('SELECT COALESCE(SUM(investments_history.amount), 0)::bigint sum FROM investments_history WHERE done = true', as('total_invested', callback));
         },
         function(callback) {
             query('SELECT ' +

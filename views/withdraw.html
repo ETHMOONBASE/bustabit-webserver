@@ -27,7 +27,12 @@
                 <li class="active">
                     Withdraw
                 </li>
-
+                <li>
+                    <a href="/transfer">Transfer</a>
+                </li>
+                <li>
+                    <a href="/investment">Investment</a>
+                </li>
                 <li>
                     <a href="/support">Support</a>
                 </li>
@@ -46,17 +51,16 @@
                 <table>
                     <thead>
                         <tr>
-                            <td>Bits</td>
+                            <td>Rips</td>
                             <td>Destination Address</td>
                             <td>Status</td>
                             <td class="show-for-large-up">Created</td>
-
                         </tr>
                     </thead>
                     <tbody>
                         {{~it.user.withdrawals :withdrawal:index}}
                             <tr>
-                                <td>{{#def.format: {n: withdrawal.amount, decimals: 2 } }}</td>
+                                <td>{{#def.format: {n: withdrawal.amount, decimals:2 } }}</td>
                                 <td>
                                     <span class="visible-for-small-only">{{=withdrawal.shortDestination}}...</span>
                                     <span class="show-for-medium-up">{{=withdrawal.destination}} </span>
@@ -64,7 +68,7 @@
                                 </td>
                                 <td>
                                     {{?withdrawal.status}}
-                                         <a href="https://blockchain.info/tx/{{=withdrawal.status}}" target="_blank">Transferred</a>
+                                         <a href="https://ripple.com/build/ripple-info-tool/#{{=withdrawal.status}}" target="_blank">Transferred</a>
                                     {{??}}
                                         in progress
                                     {{?}}

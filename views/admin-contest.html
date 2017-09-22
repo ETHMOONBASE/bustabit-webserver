@@ -1,0 +1,24 @@
+{{##def.page_title = 'Admin Contest' #}}
+
+{{##def.content:
+<div class="row faq panel radius">
+    <h5>Reward contest Users</h5>
+    <hr>
+    <div class="row contact">
+        <form action="#" id="contact" method="post">
+            <label>users:</label>
+            <input type="text" id="user1" name="user1" value="{{=it.users[0].username}}">
+            <input type="text" id="user2" name="user2" value="{{=it.users[1].username}}">
+            <input type="text" id="user3" name="user3" value="{{=it.users[2].username}}">
+            <input type="text" id="user4" name="user4" value="{{=it.users[3].username}}">
+            <input type="text" id="user5" name="user5" value="{{=it.users[4].username}}">
+            <input type="text" id="user6" name="user6" value="{{=it.users[5].username}}">
+            <input type="text" id="user7" name="user7" value="{{=it.users[6].username}}">
+            <input type="text" id="user8" name="user8" value="{{=it.users[7].username}}">
+            <input type="text" id="user9" name="user9" value="{{=it.users[8].username}}">
+            <input type="text" id="user10" name="user10" value="{{=it.users[9].username}}">
+        </form>
+    </div>
+</div>
+#}}
+{{#def.include('./template/main_old')}}

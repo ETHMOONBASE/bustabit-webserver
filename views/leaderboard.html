@@ -3,7 +3,7 @@
 {{##def.content:
 <div class="content row panel radius">
 
-    <h5 id="top">Top 100 players</h5>
+    <h5 id="top">Top 100 players{{?it.last24}} for the last 24 hours{{?}} <div style="float: right;font-size: 14px;cursor: pointer;">{{?it.last24}}<a href="/leaderboard">Show global</a>{{??}}<a href="/leaderboard?last24=true">Show last 24 hours</a>{{?}}</div></h5>
     <hr>
     <table class="leaders">
         <thead>
@@ -15,10 +15,10 @@
                     Player
                 </td>
                 <td class="ldb-gross">
-                    {{?it.sortBy != 'gross_profit'}}<a href="/leaderboard"><i class="fa fa-sort-desc"></i></a>{{?}} Gross Profit <strong><a href="/faq#gross-profit">?</a></strong>
+                    {{?it.sortBy != 'gross_profit'}}<a href="/leaderboard?{{?it.last24}}last24=true{{?}}"><i class="fa fa-sort-desc"></i></a>{{?}} Gross Profit <strong><a href="/faq#gross-profit">?</a></strong>
                 </td>
                 <td class="ldb-net">
-                    {{?it.sortBy != 'net_profit' || it.order != 'DESC' }}<a href="/leaderboard?by=net_desc"><i class="fa fa-sort-desc"></i></a>{{?}} Net Profit {{?it.sortBy != 'net_profit' || it.order != 'ASC' }}<a href="/leaderboard?by=net_asc"><i class="fa fa-sort-asc"></i></a>{{?}}
+                    {{?it.sortBy != 'net_profit' || it.order != 'DESC' }}<a href="/leaderboard?{{?it.last24}}last24=true&{{?}}by=net_desc"><i class="fa fa-sort-desc"></i></a>{{?}} Net Profit {{?it.sortBy != 'net_profit' || it.order != 'ASC' }}<a href="/leaderboard?{{?it.last24}}last24=true&{{?}}by=net_asc"><i class="fa fa-sort-asc"></i></a>{{?}}
                 </td>
             </tr>
         </thead>
@@ -27,16 +27,16 @@
             {{~it.leaders :leader:index}}
                 <tr>
                     <td>
-                        {{=leader.rank}}
+                        {{?it.last24}}{{=index+1}}{{??}}{{=leader.rank}}{{?}}
                     </td>
                     <td>
                         <a href="/user/{{=leader.username}}">{{=leader.username}}</a>
                     </td>
                     <td>
-                        {{#def.format: { n: leader.gross_profit, decimals: 2 } }}
+                        {{#def.format: { n: leader.gross_profit, decimals:2 } }}
                     </td>
                     <td>
-                        {{#def.format: { n: leader.net_profit, decimals: 2 } }}
+                        {{#def.format: { n: leader.net_profit, decimals:2 } }}
                     </td>
                 </tr>
             {{~}}

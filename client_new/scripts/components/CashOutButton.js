@@ -29,13 +29,13 @@ define([
             if (this.props.engine.cashingOut) {
                 return D.div({ className: 'cash-out' },
                     D.a({ className: 'big-button-disable unclick' },
-                        'Cash out at ', Payout({ engine: this.props.engine }), ' bits'
+                        'Cash out at ', Payout({ engine: this.props.engine }), ' rips'
                     )
                 );
             } else {
                 return D.div({ className: 'cash-out', onMouseDown: this._cashOut },
                     D.a({ className: 'big-button unclick' },
-                        'Cash out at ', Payout({ engine: this.props.engine }), ' bits'
+                        'Cash out at ', Payout({ engine: this.props.engine }), ' rips'
                     )
                 );
             }

@@ -1,4 +1,4 @@
-{{##def.page_title = 'Deposit History' #}}
+{{##def.page_title = 'Investment History' #}}
 {{##def.content:
 <script type="text/javascript">
     function logout() {
@@ -20,8 +20,8 @@
                     <li>
                         <a href="/security">Security</a>
                     </li>
-                    <li class="active">
-                        Deposit
+                    <li>
+                        <a href="/deposit">Deposit</a>
                     </li>
                     <li>
                         <a href="/withdraw">Withdraw</a>
@@ -29,8 +29,8 @@
                     <li>
                         <a href="/transfer">Transfer</a>
                     </li>
-                    <li>
-                        <a href="/investment">Investment</a>
+                    <li class="active">
+                        Investment
                     </li>
                     <li>
                         <a href="support">Support</a>
@@ -43,35 +43,34 @@
                 </ul>
             </div>
             <div class="small-10 columns setts-content">
-                <h5 class="">Deposit History</h5>
+                <a class="border-button right green" href="/investment/request">Invest/Divest</a>
+                <h5>Investment History</h5>
                 <hr>
-                <p class="account">
-                    <b>Deposit Address:</b>
-                    <input type="text" value="rKxcBwQa8wmK9FTX2VQPfNntCBJULUuKBm" readonly><br> 
-                    <b>Tag: <span class="alert_blink">Make sure to include your tag in the transaction to receive your rips!</span></b>
-                    <input type="text" value="{{=it.user.deposit_address}}" readonly style="width:100px;">
-                </p>
-                {{?it.user.deposits.length > 0}}
+                {{?it.user.investments.length > 0 && it.user.investment && it.user.sumInvested && it.user.bankrollData}}
+                    <p class="account">
+                        <b>Current investment: <span id="curInvestment">{{#def.format: {n: it.user.investment.amount, decimals:2 } }}</span> Rips <!--(<span id="curInvestmentProfitPercent">{{#def.decimalformat: {n: (100 * (it.user.investment.amount - it.user.sumInvested)) / it.user.sumInvested, decimals:2 } }}</span>% profit)--></b><br>
+                        <i style="font-size: 12px;">Your investment represents <span id="investmentPercent">{{= ((100 * it.user.investment.amount) / it.user.bankrollData).toFixed(4) }}</span>% of the bankroll.</i>
+                    </p>
                     <table>
                         <thead>
                             <tr>
                                 <td>Rips</td>
-                                <td>Transaction</td>
                                 <td class="show-for-medium-up">Created</td>
+                                <td>Processed</td>
                             </tr>
                         </thead>
                         <tbody>
-                            {{~it.user.deposits :deposit:index}}
+                            {{~it.user.investments :investment:index}}
                                 <tr>
-                                    <td>{{#def.format: {n: deposit.amount, decimals:2 } }}</td>
-                                    <td><a href="https://ripple.com/build/ripple-info-tool/#{{=deposit.txid}}" target="_blank">link</a></td>
-                                    <td class="show-for-medium-up">{{=deposit.created}}</td>
+                                    <td>{{#def.format: {n: investment.amount, decimals:2 } }}{{?investment.amount==0}} <strong><a href="/faq#zerodivest">?</a></strong>{{?}}</td>
+                                    <td class="show-for-medium-up">{{=investment.created}}</td>
+                                    <td>{{?investment.done}}Yes{{??}}No{{?}}</td>
                                 </tr>
                             {{~}}
                         </tbody>
                     </table>
                 {{??}}
-                    <p>You don't have deposits</p>
+                    <p>You don't have an investment history</p>
                 {{?}}
 
             </div>

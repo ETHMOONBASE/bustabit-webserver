@@ -119,7 +119,8 @@ function tableNew() {
         res.render('table_new', {
             user: req.user,
             buildConfig: config.BUILD,
-            table: true
+            table: true,
+            contest: false
         });
     }
 }
@@ -140,7 +141,7 @@ function tableDev() {
 function requestDevOtt(id, callback) {
     var curl = require('curlrequest');
     var options = {
-        url: 'https://www.bustabit.com/ott',
+        url: 'https://www.winxrp.com/ott',
         include: true ,
         method: 'POST',
         'cookie': 'id='+id
@@ -168,7 +169,12 @@ module.exports = function(app) {
     app.get('/request', restrict, user.request);
     app.get('/deposit', restrict, user.deposit);
     app.get('/withdraw', restrict, user.withdraw);
+    app.get('/transfer', restrict, user.transfer);
+    app.get('/investment', restrict, user.investment);
+    app.get('/transfer.json', restrict, user.transferJson);
     app.get('/withdraw/request', restrict, user.withdrawRequest);
+    app.get('/transfer/request', restrict, user.transferRequest);
+    app.get('/investment/request', restrict, user.investmentRequest);
     app.get('/support', restrict, user.contact);
     app.get('/account', restrict, user.account);
     app.get('/security', restrict, user.security);
@@ -176,12 +182,15 @@ module.exports = function(app) {
     app.get('/calculator', staticPageLogged('calculator'));
     app.get('/guide', staticPageLogged('guide'));
 
-
     app.get('/play-old', table());
     app.get('/play', tableNew());
     app.get('/play-id/:id', tableDev());
 
     app.get('/leaderboard', games.getLeaderBoard);
+
+    app.get('/contest', games.getContest);
+
+    app.get('/game/:id.json', games.getGameInfoJson);
     app.get('/game/:id', games.show);
     app.get('/user/:name', user.profile);
 
@@ -197,6 +206,8 @@ module.exports = function(app) {
     app.post('/enable-2fa', restrict, user.enableMfa);
     app.post('/disable-2fa', restrict, user.disableMfa);
     app.post('/withdraw-request', restrict, user.handleWithdrawRequest);
+    app.post('/transfer-request', restrict, user.handleTransferRequest);
+    app.post('/investment-request', restrict, user.handleInvestmentRequest);
     app.post('/support', restrict, contact('support'));
     app.post('/contact', contact('contact'));
     app.post('/logout', restrictRedirectToHome, user.logout);
@@ -222,6 +233,7 @@ module.exports = function(app) {
 
     // Admin stuff
     app.get('/admin-giveaway', adminRestrict, admin.giveAway);
+    app.get('/admin-contest', adminRestrict, admin.contest);
     app.post('/admin-giveaway', adminRestrict, admin.giveAwayHandle);
 
     app.get('*', function(req, res) {

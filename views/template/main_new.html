@@ -1,9 +1,10 @@
 {{##def.format:param:{{=(param.n/100).toFixed(param.decimals).toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,")}}#}}
+{{##def.decimalformat:param:{{=(param.n).toFixed(param.decimals).toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,")}}#}}
 
 <!DOCTYPE html>
 <html>
 {{#def.include('head_new')}}
-<body>
+<body id="main-body">
 
 <div class="wrap">
     {{#def.include('header_new')}}
@@ -21,13 +22,13 @@
     </div>
     {{??it.user.advice == 'new'}}
     <div class="success-wrap">
-        Welcome to bustabit.com, to start you have 2 free bits, bits
+        Welcome to winxrp.com, to start you have 2 free rips, 
         <a href="/request">you can request them here</a> or you can just watch the current games... have fun :D
 
     </div>
     {{??it.user.advice == 'received'}}
     <div class="success-wrap">
-        Congratulations you have been credited 2 free bits. Have fun!
+        Congratulations you have been credited 2 free rips. Have fun!
     </div>
     {{?? it.user.advice}}
     <div class="success-wrap">
@@ -35,7 +36,7 @@
     </div>
     {{??it.user && it.user.balance_satoshis < 100 }}
     {{?it.user.eligible == true}}
-    <div class="success-wrap"><a href="/request">Collect your free bits!</a></div>
+    <div class="success-wrap"><a href="/request">Collect your free rips!</a></div>
     {{?}}
     {{?}}
 
